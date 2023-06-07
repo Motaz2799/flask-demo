@@ -37,9 +37,18 @@ def store_excel(files):
                 df['id'] = ids   
                 df.head()
                 df.to_sql(sheet_name, engine, if_exists="append", index=False)
+                auth_url = 'http://localhost:8080/api/v1/auth/authenticate'
+                auth_payload = {'email': 'archimaster@orange.com', 'password': '123'}
+                auth_response = requests.post(auth_url, json=auth_payload)
+                if auth_response.status_code == 200:
+                    token = auth_response.json().get('token')
+                else:
+                    return 'Failed to authenticate'
+
+                headers = {'Authorization': f'Bearer {token}'}
                 if(sheet_name == 'applications'):
                       for id in ids :
-                        url_assessment = f"http://127.0.0.1:8080/api/v1/applications/{id}/addAssessment/52"
-                        requests.post(url_assessment)
+                        url_assessment = f"http://127.0.0.1:8080/api/v1/applications/{id}/addAssessment/1"
+                        requests.post(url_assessment,headers=headers)
     
     return "File(s) Upload Successful"

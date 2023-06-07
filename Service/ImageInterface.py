@@ -3,7 +3,16 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 def get_interface(app_id):
-    response = requests.get('http://127.0.0.1:8080/api/v1/interfaces')
+    auth_url = 'http://localhost:8080/api/v1/auth/authenticate'
+    auth_payload = {'email': 'archimaster@orange.com', 'password': '123'}
+    auth_response = requests.post(auth_url, json=auth_payload)
+    if auth_response.status_code == 200:
+        token = auth_response.json().get('token')
+    else:
+        return 'Failed to authenticate'
+
+    headers = {'Authorization': f'Bearer {token}'}
+    response = requests.get('http://127.0.0.1:8080/api/v1/interfaces', headers=headers)
     if response.status_code == 200:
         data = response.json()
     G = nx.Graph()

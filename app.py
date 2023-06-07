@@ -3,15 +3,27 @@ import matplotlib.pyplot as plt
 import requests
 from Service.UploadExcel import store_excel
 from flask_cors import CORS
-from docx import Document
+
 from docxtpl import DocxTemplate ,InlineImage
-from docx2pdf import convert
+
 import os
 import comtypes.client
 import docx
 import Service.Scoring as scoring
 import Service.ImageInterface as imageInterface
 import Service.ImageInterface as ImageInterface
+from py_eureka_client import eureka_client
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+eureka_client.init(
+     eureka_server="http://localhost:8761/eureka/",
+     app_name="ETL-service",
+     instance_port=5000,
+     instance_host="localhost",
+
+ )
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -19,18 +31,31 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/api/v1/generate_report/<int:app_id>/<string:type>', methods=['GET'])
 def generate_report(app_id,type):
+    auth_url = 'http://localhost:8080/api/v1/auth/authenticate'
+    auth_payload = {'email': 'archimaster@orange.com', 'password': '123'}
+    auth_response = requests.post(auth_url, json=auth_payload)
+    if auth_response.status_code == 200:
+        token = auth_response.json().get('token')
+    else:
+        return 'Failed to authenticate'
+
+    headers = {'Authorization': f'Bearer {token}'}
+
     url = f'http://127.0.0.1:8080/api/v1/applications/{app_id}'
-    response = requests.get(url)
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
         variables_json = response.json()
+
     url_assessment = f'http://127.0.0.1:8080/api/v1/applications/{app_id}/assessment'
-    response1 = requests.get(url_assessment)
-    if response.status_code == 200:
+    response1 = requests.get(url_assessment, headers=headers)
+    if response1.status_code == 200:
         variables_json1 = response1.json()
+
     url_interfaces = f'http://127.0.0.1:8080/api/v1/applications/{app_id}/interfaces'
-    response2 = requests.get(url_interfaces)
-    if response.status_code == 200:
+    response2 = requests.get(url_interfaces, headers=headers)
+    if response2.status_code == 200:
         variables_json2 = response2.json()
+
 
     image_path = imageInterface.get_interface(app_id)
     (jsonStrategie,image_path_strategie)=scoring.calculate_scores(app_id,2)

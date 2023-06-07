@@ -6,7 +6,7 @@ from flask import send_file
 import matplotlib.pyplot as plt
 
 def calculate_scores(app_id, detailed):
-    engine = create_engine('mysql+pymysql://root:firas@localhost/cra')
+    engine = create_engine('mysql+pymysql://root:root@localhost/cra')
     df_assessment_response = pd.read_sql_table('assessment_response', engine)
     labels = ['revise', 'retain', 'rehost', 'rebuild', 'rearchitect', 'retire', 'replace']
     vectors = ['benefit', 'effort', 'risk']

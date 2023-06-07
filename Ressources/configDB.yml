@@ -2,5 +2,5 @@ mysql:
   user: root
   host: localhost
   port: 3306
-  password: firas
+  password: root
   database: CRA
